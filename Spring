@@ -1,22 +1,22 @@
-1. Are Spring Beans Thread Safe?
+1. Are Spring Beans Thread Safe ?
 
 
 No.
 
-Spring has different bean scopes (e.g. Prototype, Singleton, etc.) but all these scopes enforce is when the bean is created. For example a "prototype" scoped bean will be created each time this bean is "injected", whereas a "singleton" scoped bean will be created once and shared within the application context. There are other scopes but they just define a time span (e.g. a "scope") of when a new instance will be created.
+Spring has different bean scopes (e.g. Prototype, Singleton, Request, Session, etc.). "singleton" scoped bean will be created once and shared within the application context. "prototype" will create a new instance for any call context.getBean("beanID").
 
-The above has little, if anything to do with being thread safe, since if several threads have access to a bean (no matter the scope), it would only depend on the design of that bean to be or not to be "thread safe".
+These above scopes are nothing to do with being thread safe, since if several threads have access to a bean (no matter the scope), it would only depend on the design of that bean to be or not to be "thread safe".
 
-The reason I said "little, if anything" is because it might depend on the problem you are trying to solve. For example if you are concerned whether 2 or more HTTP requests may create a problem for the same bean, there is a "request" scope that will create a new instance of a bean for each HTTP request, hence you can "think" of a particular bean as being "safe" in the context of multiple HTTP requests. But it is still not truly thread safe by Spring since if several threads use this bean within the same HTTP request, it goes back to a bean design (your design of a bean backing class).
+If you are concerned whether 2 or more HTTP requests may creae a problem for the same bean, there is a "request" scope that will create a new instance of a bean for each HTTP request, hence you can "think" of a particular bean as being "safe" in the context of multiple HTTP requests. But it is still not truly thread safe by Spring since if several threads use this bean within the same HTTP request, it goes back to a bean design (your design of a bean backing class).
 
-How to Make/Design a Thread Safe "Object"?
+How to Make/Design a Thread Safe "Spring bean" ?
 
-There are several ways, probably too long to list here but here are a few examples:
+Ways ::
 
-Design your beans immutable: for example have no setters and only use constructor arguments to create a bean. There are other ways, such as Builder pattern, etc..
+Design your beans as immutable: for example have no setters and only use constructor arguments to create a bean. There are other ways, such as Builder pattern, etc..
 
-Design your beans stateless: for example a bean that does something can be just a function (or several). This bean in most cases can and should be stateless, which means it does not have any state, it only does things with function arguments you provide each time (on each invocation)
+Here, is the clue where exactly prefering constructor based DI then setter based DI, which help us in designing bean immutability.
 
-Design your beans persistent: which is a special case of "immutable", but has some very nice properties. Usually is used in functional programming, where Spring (at least yet) not as useful as in imperative world, but I have used them with Scala/Spring projects.
+Design your beans as stateless: for example a bean that does something can be just a function (or several). This bean in most cases can and should be stateless, which means it does not have any state, it only does things with function arguments you provide each time (on each invocation)
 
-Design your beans with locks [last resort]: I would recommend against this unless you are working on a lower level library. The reason is we (humans) are not good thinking in terms of locks. Just the way we are raised and nurtured. Everything happens in parallel without us needing to "put that rain on pause, let me get an umbrella". Computers however are all about locks when you are talking "multiple things at the same time", hence there are some of us (exceptional people) who are doing their fair share and implementing libraries based on these locks. Most of other humans can just use these libraries and worry not about concurrency.
+Here, use synchonized method or block to maintain critical logic, and make sure variables inside method which are in part of critica logic, should be local.
