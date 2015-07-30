@@ -20,3 +20,68 @@ Here, is the clue where exactly prefering constructor based DI then setter based
 Design your beans as stateless: for example a bean that does something can be just a function (or several). This bean in most cases can and should be stateless, which means it does not have any state, it only does things with function arguments you provide each time (on each invocation)
 
 Here, use synchonized method or block to maintain critical logic, and make sure variables inside method which are in part of critica logic, should be local.
+
+------------------------------
+
+'SimpleThreadScope' in spring has been introduced from spring 3.0. It is the scope which is not registered with spring container by default. SimpleThreadScope is the scope in which a bean has the life cycle affiliated to thread life cycle. To use SimpleThreadScope we need to register it in our XML or in java code. 
+
+applicationContext.xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+     
+      <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+      <property name="scopes">
+          <map>
+              <entry key="thread">
+                  <bean class="org.springframework.context.support.SimpleThreadScope"/>
+              </entry>
+          </map>
+      </property>
+  </bean>
+     
+    <bean id="customerId" class="com.spring.thread.Customer"  scope="thread">
+	<constructor-arg value="SriRam"/>
+	</bean>
+	
+    
+</beans>
+ 
+ 
+Customer.java
+
+public class Customer {
+
+private String name;
+
+private Customer(String name){
+this.name= name;
+}
+public String toSting(){
+	retun "Bean Customer with " + name + " is initialized with scope of thread.";
+}
+}
+
+App.java
+package com.concretepage;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+public class App {
+	public static void main(String[] args) {
+		ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+		Customer c = (Customer)context.getBean("customerId");
+		System.out.println(c);
+	}
+}
+ 
+
+Output ::
+Bean Customer SriRam is initialized with scope of thread.
+
+
+Note:: we can also register bean in java class level.
+
+ConfigurableBeanFactory beanFactory=  new DefaultListableBeanFactory();
+Scope threadScope= new SimpleThreadScope();
+beanFactory.registerScope("thread", threadScope);
